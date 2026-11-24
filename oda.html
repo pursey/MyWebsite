@@ -279,12 +279,12 @@
       </div>
       <div class="row">
         <label for="wWidth" id="wWidthLabel">Genişlik</label>
-        <input id="wWidth" type="range" min="240" max="265" step="5" value="250" oninput="updateSizes()" />
+        <input id="wWidth" type="range" min="240" max="265" step="1" value="250" oninput="updateSizes()" />
         <span class="val" id="wWidthVal">250 cm</span>
       </div>
       <div class="row" id="wSideRow" style="display:none;">
         <label for="wSide">Yan Kol</label>
-        <input id="wSide" type="range" min="80" max="266" step="5" value="140" oninput="updateSizes()" />
+        <input id="wSide" type="range" min="80" max="266" step="1" value="140" oninput="updateSizes()" />
         <span class="val" id="wSideVal">140 cm</span>
       </div>
       <div class="row">
@@ -298,7 +298,7 @@
       <h2>Makyaj Masası Ölçüsü</h2>
       <div class="row">
         <label for="vWidth">Genişlik</label>
-        <input id="vWidth" type="range" min="70" max="120" step="5" value="90" oninput="updateSizes()" />
+        <input id="vWidth" type="range" min="70" max="150" step="1" value="90" oninput="updateSizes()" />
         <span class="val" id="vWidthVal">90 cm</span>
       </div>
       <div class="row">
@@ -312,19 +312,34 @@
       <h2>Komidin Ölçüsü</h2>
       <div class="row">
         <label for="kWidth">Genişlik</label>
-        <input id="kWidth" type="range" min="35" max="70" step="5" value="50" oninput="updateSizes()" />
+        <input id="kWidth" type="range" min="35" max="70" step="1" value="50" oninput="updateSizes()" />
         <span class="val" id="kWidthVal">50 cm</span>
       </div>
       <div class="row">
         <label for="kDepth">Derinlik</label>
-        <input id="kDepth" type="range" min="35" max="55" step="5" value="40" oninput="updateSizes()" />
+        <input id="kDepth" type="range" min="35" max="55" step="1" value="40" oninput="updateSizes()" />
         <span class="val" id="kDepthVal">40 cm</span>
+      </div>
+    </div>
+
+    <div class="card" id="sifonyerSizeCard">
+      <h2>Şifonyer Ölçüsü</h2>
+      <div class="row">
+        <label for="sWidth">Genişlik</label>
+        <input id="sWidth" type="range" min="50" max="150" step="1" value="80" oninput="updateSizes()" />
+        <span class="val" id="sWidthVal">80 cm</span>
+      </div>
+      <div class="row">
+        <label for="sDepth">Derinlik</label>
+        <input id="sDepth" type="range" min="35" max="60" step="1" value="45" oninput="updateSizes()" />
+        <span class="val" id="sDepthVal">45 cm</span>
       </div>
     </div>
 
     <div class="card">
       <h2>Seçenekler &amp; Döndürme</h2>
       <div class="actions" style="margin-bottom:8px;">
+        <button id="kom0" onclick="setKomidinCount(0)">0 Komidin</button>
         <button id="kom1" class="active" onclick="setKomidinCount(1)">1 Komidin</button>
         <button id="kom2" onclick="setKomidinCount(2)">2 Komidin</button>
         <button id="sifonyerToggleBtn" onclick="toggleSifonyer()">Şifonyeri Kaldır</button>
@@ -473,10 +488,12 @@
       const btn = document.getElementById("sifonyerToggleBtn");
       btn.textContent = showSifonyer ? "Şifonyeri Kaldır" : "Şifonyeri Ekle";
       btn.classList.toggle("active", !showSifonyer);
+      document.getElementById("sifonyerSizeCard").style.display = showSifonyer ? "block" : "none";
     }
 
     function setKomidinCount(c) {
       komidinCount = c;
+      document.getElementById("kom0").classList.toggle("active", c === 0);
       document.getElementById("kom1").classList.toggle("active", c === 1);
       document.getElementById("kom2").classList.toggle("active", c === 2);
       render();
@@ -485,6 +502,7 @@
     function rotateItem(key) {
       const it = state[key];
       [it.w, it.h] = [it.h, it.w];
+      if (key === "sifonyer") it.orient = it.orient === "vertical" ? "horizontal" : "vertical";
       clampObj(it, { w: it.w, h: it.h });
       if (key === "komidin") {
         const it2 = state.komidin2;
@@ -517,7 +535,7 @@
       vanity: { x: 0, y: 80, len: 90, depth: 45, orient: "vertical" },
       komidin: { x: 460, y: 0, w: 50, h: 40 },
       komidin2: { x: 205, y: 65, w: 50, h: 40 },
-      sifonyer: { x: 145, y: 221, w: 80, h: 45 }
+      sifonyer: { x: 145, y: 221, w: 80, h: 45, orient: "horizontal" }
     });
 
     function saveState() {
@@ -545,7 +563,8 @@
         if (state.bed.h === 197) state.bed.h = 167;
         if (!state.wardrobe.sideLen) state.wardrobe.sideLen = 140;
         if (!state.wardrobe.cornerDir) state.wardrobe.cornerDir = "tl";
-        if (parsed.komidinCount) komidinCount = parsed.komidinCount;
+        if (!state.sifonyer.orient) state.sifonyer.orient = "horizontal";
+        if (typeof parsed.komidinCount === "number") komidinCount = parsed.komidinCount;
         if (typeof parsed.showSifonyer === "boolean") showSifonyer = parsed.showSifonyer;
         if (parsed.style3d) style3d = Object.assign(DEFAULT_STYLE3D(), parsed.style3d);
         if (typeof parsed.showSwing === "boolean") document.getElementById("showSwing").checked = parsed.showSwing;
@@ -584,6 +603,10 @@
       document.getElementById("vDepth").value = state.vanity.depth;
       document.getElementById("kWidth").value = state.komidin.w;
       document.getElementById("kDepth").value = state.komidin.h;
+      const sLen = state.sifonyer.orient === "vertical" ? state.sifonyer.h : state.sifonyer.w;
+      const sDep = state.sifonyer.orient === "vertical" ? state.sifonyer.w : state.sifonyer.h;
+      document.getElementById("sWidth").value = sLen;
+      document.getElementById("sDepth").value = sDep;
       document.getElementById("wWidthVal").textContent = state.wardrobe.len + " cm";
       document.getElementById("wSideVal").textContent = (state.wardrobe.sideLen || 140) + " cm";
       document.getElementById("wDepthVal").textContent = state.wardrobe.depth + " cm";
@@ -591,6 +614,9 @@
       document.getElementById("vDepthVal").textContent = state.vanity.depth + " cm";
       document.getElementById("kWidthVal").textContent = state.komidin.w + " cm";
       document.getElementById("kDepthVal").textContent = state.komidin.h + " cm";
+      document.getElementById("sWidthVal").textContent = sLen + " cm";
+      document.getElementById("sDepthVal").textContent = sDep + " cm";
+      document.getElementById("kom0").classList.toggle("active", komidinCount === 0);
       document.getElementById("kom1").classList.toggle("active", komidinCount === 1);
       document.getElementById("kom2").classList.toggle("active", komidinCount === 2);
       updateSifonyerBtn();
@@ -605,6 +631,8 @@
       const vDepth = Number(document.getElementById("vDepth").value);
       const kW = Number(document.getElementById("kWidth").value);
       const kD = Number(document.getElementById("kDepth").value);
+      const sW = Number(document.getElementById("sWidth").value);
+      const sD = Number(document.getElementById("sDepth").value);
 
       document.getElementById("wWidthVal").textContent = wLen + " cm";
       document.getElementById("wSideVal").textContent = wSide + " cm";
@@ -613,6 +641,8 @@
       document.getElementById("vDepthVal").textContent = vDepth + " cm";
       document.getElementById("kWidthVal").textContent = kW + " cm";
       document.getElementById("kDepthVal").textContent = kD + " cm";
+      document.getElementById("sWidthVal").textContent = sW + " cm";
+      document.getElementById("sDepthVal").textContent = sD + " cm";
 
       state.wardrobe.len = wLen;
       state.wardrobe.sideLen = wSide;
@@ -623,11 +653,19 @@
       state.komidin.h = kD;
       state.komidin2.w = kW;
       state.komidin2.h = kD;
+      if (state.sifonyer.orient === "vertical") {
+        state.sifonyer.w = sD;
+        state.sifonyer.h = sW;
+      } else {
+        state.sifonyer.w = sW;
+        state.sifonyer.h = sD;
+      }
 
       clampObj(state.wardrobe, getWDims());
       clampObj(state.vanity, getVDims());
       clampObj(state.komidin, { w: kW, h: kD });
       clampObj(state.komidin2, { w: kW, h: kD });
+      clampObj(state.sifonyer, { w: state.sifonyer.w, h: state.sifonyer.h });
       render();
     }
 
@@ -853,11 +891,11 @@
 
       // Komidin 1 & 2
       const k = state.komidin;
-      document.getElementById("komidinGroup").innerHTML = `
+      document.getElementById("komidinGroup").innerHTML = komidinCount >= 1 ? `
         <rect x="${k.x}" y="${k.y}" width="${k.w}" height="${k.h}" rx="3" fill="#dcfce7" stroke="#15803d" stroke-width="1.4"/>
         <text x="${k.x + k.w / 2}" y="${k.y + k.h / 2 - 2}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#14532d">KOMİDİN 1</text>
         <text x="${k.x + k.w / 2}" y="${k.y + k.h / 2 + 8}" text-anchor="middle" font-size="7" fill="#166534">${k.w}×${k.h}</text>
-      `;
+      ` : "";
 
       const k2 = state.komidin2;
       document.getElementById("komidin2Group").innerHTML = komidinCount === 2 ? `
@@ -879,7 +917,7 @@
         { name: "Yatak", rects: [{ x: b.x, y: b.y, w: b.w, h: b.h }] },
         { name: "Gardrop", rects: getWardrobeRects() },
         { name: "Makyaj masası", rects: [{ x: v.x, y: v.y, w: vd.w, h: vd.h }] },
-        { name: "Komidin 1", rects: [{ x: k.x, y: k.y, w: k.w, h: k.h }] },
+        ...(komidinCount >= 1 ? [{ name: "Komidin 1", rects: [{ x: k.x, y: k.y, w: k.w, h: k.h }] }] : []),
         ...(komidinCount === 2 ? [{ name: "Komidin 2", rects: [{ x: k2.x, y: k2.y, w: k2.w, h: k2.h }] }] : []),
         ...(showSifonyer ? [{ name: "Şifonyer", rects: [{ x: s.x, y: s.y, w: s.w, h: s.h }] }] : [])
       ];
@@ -1414,7 +1452,7 @@
         addBox(root3d, 10, 2, 3, cx, 14, cz + k.h / 2 + 2, metalMat);
         addBox(root3d, 10, 2, 3, cx, 34, cz + k.h / 2 + 2, metalMat);
       };
-      buildKomidin(state.komidin);
+      if (komidinCount >= 1) buildKomidin(state.komidin);
       if (komidinCount === 2) buildKomidin(state.komidin2);
 
       // ===== ŞİFONYER =====
