@@ -418,12 +418,12 @@
 
     const STORAGE_KEY = "salon_plan_v2";
     const DEFAULT_STATE = () => ({
-      tvUnit: { x: 220, y: 0, w: 200, h: 46, orient: "horizontal" },
+      tvUnit: { x: 240, y: 0, w: 200, h: 46, orient: "horizontal" },
       konsol: { x: 0, y: 60, w: 45, h: 175, orient: "vertical" },
-      table: { x: 80, y: 70, w: 95, h: 160, orient: "vertical" },
-      sofa1: { x: 200, y: 285, w: 220, h: 90, orient: "horizontal", face: "top" },
-      sofa2: { x: 470, y: 105, w: 90, h: 220, orient: "vertical", face: "left" },
-      coffee: { x: 285, y: 155, d: 85 }
+      table: { x: 110, y: 70, w: 95, h: 160, orient: "vertical" },
+      sofa1: { x: 225, y: 285, w: 220, h: 90, orient: "horizontal", face: "top" },
+      sofa2: { x: 475, y: 105, w: 90, h: 220, orient: "vertical", face: "left" },
+      coffee: { x: 305, y: 155, d: 85 }
     });
 
     const DEFAULT_STYLE3D = () => ({
@@ -615,28 +615,49 @@
         <text x="${ko.x + ko.w / 2}" y="${ko.y + ko.h / 2 + 10}" text-anchor="middle" font-size="8" fill="#f1f5f9"${koRot}>${ko.w} × ${ko.h}</text>
       `;
 
-      // 3. Slightly Oval Dining Table + Optional 6 Chairs
+      // 3. Slightly Oval Dining Table + Optional 6 Chairs + 60 cm Sitting Zone
       const t = state.table;
       const showChairs = document.getElementById("showChairs").checked;
-      let chairsSvg = "";
+      const SEAT_CLEAR = 60;
+      let chairsSvg = "", seatZoneSvg = "";
+      const chairZones = [];
       if (showChairs) {
         const chairColor = "#d6c7b2", chairStroke = "#786550";
         if (t.orient === "vertical") {
+          const leftZ = { x: t.x - SEAT_CLEAR, y: t.y, w: SEAT_CLEAR, h: t.h };
+          const rightZ = { x: t.x + t.w, y: t.y, w: SEAT_CLEAR, h: t.h };
+          chairZones.push(leftZ, rightZ);
+          seatZoneSvg = `
+            <rect x="${leftZ.x}" y="${leftZ.y}" width="${leftZ.w}" height="${leftZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="${leftZ.x + 12}" y="${leftZ.y + leftZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${leftZ.x + 12} ${leftZ.y + leftZ.h / 2})">60 cm oturma</text>
+            <rect x="${rightZ.x}" y="${rightZ.y}" width="${rightZ.w}" height="${rightZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="${rightZ.x + rightZ.w - 10}" y="${rightZ.y + rightZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${rightZ.x + rightZ.w - 10} ${rightZ.y + rightZ.h / 2})">60 cm oturma</text>
+          `;
           const ys = [t.y + t.h * 0.22, t.y + t.h * 0.5, t.y + t.h * 0.78];
           ys.forEach(cy => {
-            chairsSvg += `<rect x="${t.x - 16}" y="${cy - 14}" width="14" height="28" rx="4" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
-            chairsSvg += `<rect x="${t.x + t.w + 2}" y="${cy - 14}" width="14" height="28" rx="4" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
+            chairsSvg += `<rect x="${t.x - 36}" y="${cy - 15}" width="34" height="30" rx="5" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
+            chairsSvg += `<rect x="${t.x + t.w + 2}" y="${cy - 15}" width="34" height="30" rx="5" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
           });
         } else {
+          const topZ = { x: t.x, y: t.y - SEAT_CLEAR, w: t.w, h: SEAT_CLEAR };
+          const botZ = { x: t.x, y: t.y + t.h, w: t.w, h: SEAT_CLEAR };
+          chairZones.push(topZ, botZ);
+          seatZoneSvg = `
+            <rect x="${topZ.x}" y="${topZ.y}" width="${topZ.w}" height="${topZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="${topZ.x + topZ.w / 2}" y="${topZ.y + 12}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">60 cm oturma</text>
+            <rect x="${botZ.x}" y="${botZ.y}" width="${botZ.w}" height="${botZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="${botZ.x + botZ.w / 2}" y="${botZ.y + botZ.h - 6}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">60 cm oturma</text>
+          `;
           const xs = [t.x + t.w * 0.22, t.x + t.w * 0.5, t.x + t.w * 0.78];
           xs.forEach(cx => {
-            chairsSvg += `<rect x="${cx - 14}" y="${t.y - 16}" width="28" height="14" rx="4" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
-            chairsSvg += `<rect x="${cx - 14}" y="${t.y + t.h + 2}" width="28" height="14" rx="4" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
+            chairsSvg += `<rect x="${cx - 15}" y="${t.y - 36}" width="30" height="34" rx="5" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
+            chairsSvg += `<rect x="${cx - 15}" y="${t.y + t.h + 2}" width="30" height="34" rx="5" fill="${chairColor}" stroke="${chairStroke}" stroke-width="1"/>`;
           });
         }
       }
-      // Hafif oval: rx/ry = 26
+      // Hafif oval: rx/ry = 28
       document.getElementById("tableGroup").innerHTML = `
+        ${seatZoneSvg}
         ${chairsSvg}
         <rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="28" ry="28" fill="#f1f5f9" stroke="#64748b" stroke-width="1.6"/>
         <text x="${t.x + t.w / 2}" y="${t.y + t.h / 2 - 3}" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">OVAL MASA</text>
@@ -697,6 +718,16 @@
         if (rectsOverlap(items[i].r, COLUMN_RECT)) errs.push(`${items[i].name} sol üst kolona (38×40 cm) çarpıyor.`);
         if (rectsOverlap(items[i].r, RADIATOR_RECT)) warns.push(`${items[i].name} alt sağ radyatör önüne giriyor.`);
         if (rectsOverlap(items[i].r, DOOR_SWING_RECT)) warns.push(`${items[i].name} kapı açılım alanına (91 cm) giriyor.`);
+        if (showChairs && items[i].name !== "Yemek Masası") {
+          if (chairZones.some(z => rectsOverlap(items[i].r, z))) {
+            warns.push(`${items[i].name}, 60 cm sandalye oturma alanına giriyor.`);
+          }
+        }
+      }
+      if (showChairs) {
+        if (chairZones.some(z => z.x < 0 || z.y < 0 || z.x + z.w > ROOM_W || z.y + z.h > ROOM_H)) {
+          warns.push("Sandalye oturma alanı (60 cm) duvara çok yakın.");
+        }
       }
 
       const box = document.getElementById("statusBox");
