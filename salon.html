@@ -244,6 +244,11 @@
         <span class="val" id="tWidVal">95 cm</span>
       </div>
       <div class="row">
+        <label for="seatClear">Oturma Payı</label>
+        <input id="seatClear" type="range" min="40" max="90" step="1" value="60" oninput="document.getElementById('seatClearVal').textContent=this.value+' cm'; render()" />
+        <span class="val" id="seatClearVal">60 cm</span>
+      </div>
+      <div class="row">
         <label><input id="showChairs" type="checkbox" checked onchange="render()" /> 6 Sandalye göster</label>
       </div>
     </div>
@@ -527,6 +532,7 @@
         state,
         style3d,
         showCoffee,
+        seatClear: Number(document.getElementById("seatClear").value),
         showChairs: document.getElementById("showChairs").checked,
         snapGrid: document.getElementById("snapGrid").checked
       };
@@ -544,6 +550,10 @@
         if (parsed.state) state = parsed.state;
         if (parsed.style3d) style3d = Object.assign(DEFAULT_STYLE3D(), parsed.style3d);
         if (typeof parsed.showCoffee === "boolean") showCoffee = parsed.showCoffee;
+        if (typeof parsed.seatClear === "number") {
+          document.getElementById("seatClear").value = parsed.seatClear;
+          document.getElementById("seatClearVal").textContent = parsed.seatClear + " cm";
+        }
         if (typeof parsed.showChairs === "boolean") document.getElementById("showChairs").checked = parsed.showChairs;
         if (typeof parsed.snapGrid === "boolean") document.getElementById("snapGrid").checked = parsed.snapGrid;
         syncUI();
@@ -555,6 +565,8 @@
       state = DEFAULT_STATE();
       style3d = DEFAULT_STYLE3D();
       showCoffee = true;
+      document.getElementById("seatClear").value = 60;
+      document.getElementById("seatClearVal").textContent = "60 cm";
       document.getElementById("showChairs").checked = true;
       document.getElementById("snapGrid").checked = true;
       syncUI();
@@ -615,10 +627,10 @@
         <text x="${ko.x + ko.w / 2}" y="${ko.y + ko.h / 2 + 10}" text-anchor="middle" font-size="8" fill="#f1f5f9"${koRot}>${ko.w} × ${ko.h}</text>
       `;
 
-      // 3. Slightly Oval Dining Table + Optional 6 Chairs + 60 cm Sitting Zone
+      // 3. Slightly Oval Dining Table + Optional 6 Chairs + Adjustable Sitting Zone
       const t = state.table;
       const showChairs = document.getElementById("showChairs").checked;
-      const SEAT_CLEAR = 60;
+      const SEAT_CLEAR = Number(document.getElementById("seatClear").value);
       let chairsSvg = "", seatZoneSvg = "";
       const chairZones = [];
       if (showChairs) {
@@ -629,9 +641,9 @@
           chairZones.push(leftZ, rightZ);
           seatZoneSvg = `
             <rect x="${leftZ.x}" y="${leftZ.y}" width="${leftZ.w}" height="${leftZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
-            <text x="${leftZ.x + 12}" y="${leftZ.y + leftZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${leftZ.x + 12} ${leftZ.y + leftZ.h / 2})">60 cm oturma</text>
+            <text x="${leftZ.x + 12}" y="${leftZ.y + leftZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${leftZ.x + 12} ${leftZ.y + leftZ.h / 2})">${SEAT_CLEAR} cm oturma</text>
             <rect x="${rightZ.x}" y="${rightZ.y}" width="${rightZ.w}" height="${rightZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
-            <text x="${rightZ.x + rightZ.w - 10}" y="${rightZ.y + rightZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${rightZ.x + rightZ.w - 10} ${rightZ.y + rightZ.h / 2})">60 cm oturma</text>
+            <text x="${rightZ.x + rightZ.w - 10}" y="${rightZ.y + rightZ.h / 2}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e" transform="rotate(-90 ${rightZ.x + rightZ.w - 10} ${rightZ.y + rightZ.h / 2})">${SEAT_CLEAR} cm oturma</text>
           `;
           const ys = [t.y + t.h * 0.22, t.y + t.h * 0.5, t.y + t.h * 0.78];
           ys.forEach(cy => {
@@ -644,9 +656,9 @@
           chairZones.push(topZ, botZ);
           seatZoneSvg = `
             <rect x="${topZ.x}" y="${topZ.y}" width="${topZ.w}" height="${topZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
-            <text x="${topZ.x + topZ.w / 2}" y="${topZ.y + 12}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">60 cm oturma</text>
+            <text x="${topZ.x + topZ.w / 2}" y="${topZ.y + 12}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">${SEAT_CLEAR} cm oturma</text>
             <rect x="${botZ.x}" y="${botZ.y}" width="${botZ.w}" height="${botZ.h}" rx="4" fill="rgba(20,184,166,0.13)" stroke="#0d9488" stroke-width="1" stroke-dasharray="4,3"/>
-            <text x="${botZ.x + botZ.w / 2}" y="${botZ.y + botZ.h - 6}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">60 cm oturma</text>
+            <text x="${botZ.x + botZ.w / 2}" y="${botZ.y + botZ.h - 6}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#0f766e">${SEAT_CLEAR} cm oturma</text>
           `;
           const xs = [t.x + t.w * 0.22, t.x + t.w * 0.5, t.x + t.w * 0.78];
           xs.forEach(cx => {
@@ -720,13 +732,13 @@
         if (rectsOverlap(items[i].r, DOOR_SWING_RECT)) warns.push(`${items[i].name} kapı açılım alanına (91 cm) giriyor.`);
         if (showChairs && items[i].name !== "Yemek Masası") {
           if (chairZones.some(z => rectsOverlap(items[i].r, z))) {
-            warns.push(`${items[i].name}, 60 cm sandalye oturma alanına giriyor.`);
+            warns.push(`${items[i].name}, ${SEAT_CLEAR} cm sandalye oturma alanına giriyor.`);
           }
         }
       }
       if (showChairs) {
         if (chairZones.some(z => z.x < 0 || z.y < 0 || z.x + z.w > ROOM_W || z.y + z.h > ROOM_H)) {
-          warns.push("Sandalye oturma alanı (60 cm) duvara çok yakın.");
+          warns.push(`Sandalye oturma alanı (${SEAT_CLEAR} cm) duvara çok yakın.`);
         }
       }
 
